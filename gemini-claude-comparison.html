@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini to Claude Feature Mapping</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-darker: #050812;
+            --card-bg: #ffffff;
+            --card-border: #e5e7eb;
+            --card-border-hover: #bfdbfe;
+            --text-dark: #0f172a;
+            --text-light: #64748b;
+            --text-lighter: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-blue-light: #3b82f6;
+            --accent-purple: #7c3aed;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --gemini-accent: #0284c7;
+            --claude-accent: #0891b2;
+        }
+        
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Geist', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, #1a1f3a 50%, var(--bg-dark) 100%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            padding: 100px 20px 80px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 80px;
+            border-radius: 0 0 24px 24px;
+        }
+        
+        .header-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+        }
+        
+        .subtitle {
+            font-size: 17px;
+            color: #cbd5e1;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.8;
+            font-weight: 400;
+        }
+        
+        .type-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 80px;
+            padding: 0 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .type-tab {
+            padding: 13px 32px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            backdrop-filter: blur(12px);
+        }
+        
+        .type-tab:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        
+        .type-tab.active {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-light) 100%);
+            border-color: var(--accent-blue-light);
+            color: #ffffff;
+            box-shadow: 0 12px 32px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .section-intro {
+            padding: 20px 28px;
+            background: rgba(37, 99, 235, 0.05);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: 12px;
+            margin-bottom: 40px;
+            color: var(--text-dark);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
+        .section-intro strong {
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+        
+        .comparisons {
+            display: grid;
+            gap: 28px;
+            margin-bottom: 120px;
+            padding: 0 20px;
+        }
+        
+        .comparison-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 14px;
+            padding: 36px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .comparison-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .comparison-card:hover::before {
+            opacity: 1;
+        }
+        
+        .comparison-card:hover {
+            border-color: var(--card-border-hover);
+            box-shadow: 0 16px 40px rgba(37, 99, 235, 0.12), 0 0 0 1px rgba(37, 99, 235, 0.05);
+            transform: translateY(-4px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            gap: 20px;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            padding: 9px 15px;
+            border-radius: 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-family: 'Geist Mono', monospace;
+        }
+        
+        .status-badge.match {
+            background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+            color: #065f46;
+            border: 1px solid #86efac;
+        }
+        
+        .status-badge.gap {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #7f1d1d;
+            border: 1px solid #fca5a5;
+        }
+        
+        .status-badge.partial {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        
+        .comparison-mapping {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 24px;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .tool-column {
+            padding: 20px;
+            border-radius: 10px;
+            border: 1.5px solid;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+        
+        .gemini-column {
+            border-color: var(--gemini-accent);
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.04) 0%, rgba(2, 132, 199, 0.02) 100%);
+        }
+        
+        .claude-column {
+            border-color: var(--claude-accent);
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.04) 0%, rgba(8, 145, 178, 0.02) 100%);
+        }
+        
+        .comparison-card:hover .tool-column {
+            transform: translateY(-2px);
+        }
+        
+        .tool-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+        
+        .gemini-label {
+            color: var(--gemini-accent);
+        }
+        
+        .claude-label {
+            color: var(--claude-accent);
+        }
+        
+        .tool-name {
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.4;
+            color: var(--text-dark);
+        }
+        
+        .arrow {
+            color: var(--text-lighter);
+            font-size: 20px;
+            font-weight: 300;
+        }
+        
+        .hint {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        
+        .chevron {
+            display: inline-block;
+            transition: transform 0.3s ease;
+            opacity: 0.6;
+        }
+        
+        .comparison-card:hover .chevron {
+            transform: translateX(3px);
+            opacity: 1;
+        }
+        
+        .comparison-content {
+            display: none;
+            margin-top: 36px;
+            padding-top: 36px;
+            border-top: 1.5px solid var(--card-border);
+        }
+        
+        .comparison-card.expanded .comparison-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .content-section {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .content-section h3 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-divider {
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .content-section p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-light);
+            margin-bottom: 18px;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 16px 18px;
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 500;
+            line-height: 1.7;
+            margin-top: 16px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .highlight-box.different {
+            border-left-color: var(--accent-purple);
+            background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+        }
+        
+        .close-btn {
+            margin-top: 28px;
+            padding: 13px 28px;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-light) 100%);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .close-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+        }
+        
+        .close-btn:active {
+            transform: translateY(0);
+        }
+        
+        footer {
+            padding: 80px 20px;
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 15px;
+            background: linear-gradient(180deg, transparent 0%, rgba(37, 99, 235, 0.05) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 500;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 48px; }
+            header { padding: 80px 20px 60px; }
+            .comparison-mapping {
+                grid-template-columns: 1fr;
+            }
+            .arrow { display: none; }
+            .comparison-card {
+                padding: 24px;
+            }
+            .comparison-card.expanded .comparison-content {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-badge">🗺️ Feature Mapping</div>
+            <h1>Gemini → Claude</h1>
+            <p class="subtitle">Coming from Gemini? Here's how your favorite features translate to Claude. Click any comparison to see what's the same and what's different.</p>
+        </header>
+
+        <div class="type-tabs">
+            <button class="type-tab active" data-type="chat">Claude Chat Features</button>
+            <button class="type-tab" data-type="cowork">Team & Organization</button>
+        </div>
+
+        <div id="sectionIntro"></div>
+        <div class="comparisons" id="comparisons"></div>
+    </div>
+
+    <footer>
+        <p>💡 Both tools are powerful. This guide helps you find your way around Claude if you're coming from Gemini.</p>
+    </footer>
+
+    <script>
+        const comparisons = {
+            chat: [
+                {
+                    gemini: "gemini.google.com chat",
+                    claude: "Claude Chat (claude.ai or desktop app)",
+                    status: "match",
+                    same: "Conversational chat, file uploads, persistent history, model selection (Pro/Flash ↔ Opus/Sonnet/Haiku)",
+                    different: "Gemini auto-grounds in your Google account; Claude requires explicit connector authorization per source"
+                },
+                {
+                    gemini: "Gems (custom instructions + knowledge files)",
+                    claude: "Claude Chat Projects",
+                    status: "match",
+                    same: "Reusable personas: instructions + uploaded files persist across every chat inside the Gem/Project",
+                    different: "Claude Chat Projects accept larger files. Share with your team through Anthropic team/org plans"
+                },
+                {
+                    gemini: "Canvas",
+                    claude: "Claude Chat Artifacts",
+                    status: "match",
+                    same: "Live interactive deliverables generated alongside the chat — documents, code previews, micro-apps you can interact with in-app",
+                    different: "Claude Artifacts is more developed for interactive web apps (working calculators, dashboards, prototypes you can hand to a VP); Canvas is stronger for Workspace-handoff document workflows"
+                },
+                {
+                    gemini: "Deep Research",
+                    claude: "Claude Chat Research mode + extended thinking",
+                    status: "match",
+                    same: "Multi-step browse and synthesize, shows its reasoning",
+                    different: "Gemini taps Google Search directly; Claude uses web search via tool calls. Both are usable; Gemini's index is broader, Claude's synthesis is often tighter"
+                },
+                {
+                    gemini: "Gemini in Docs/Gmail/Drive/Sheets side panels",
+                    claude: "Claude Chat Connectors",
+                    status: "partial",
+                    same: "Both let AI access and act on your data from other apps",
+                    different: "Gemini's surface is first-party inside Google's apps; Claude doesn't run inside Google Workspace UIs. Claude's way: authorize connectors once, then Claude can read Gmail, Drive, Calendar, GitHub, Slack, etc. from within Claude Chat"
+                },
+                {
+                    gemini: "@mention apps (@Gmail, @Calendar, @YouTube)",
+                    claude: "Claude Chat Connectors (Gmail, Calendar, Drive, GitHub, Slack, etc.)",
+                    status: "match",
+                    same: "Both let the model pull live data from connected services on demand",
+                    different: "Gemini's @-mentions are live in-chat calls; Claude connectors are pre-authorized data pipes you turn on once"
+                },
+                {
+                    gemini: "Imagen (image generation)",
+                    claude: "No first-party Claude image generation",
+                    status: "gap",
+                    same: "—",
+                    different: "Real gap. For ad creative iteration, route to Gemini or ChatGPT/DALL-E"
+                },
+                {
+                    gemini: "Veo (video generation)",
+                    claude: "No Claude analog",
+                    status: "gap",
+                    same: "—",
+                    different: "Same — route to Gemini or other vendor"
+                },
+                {
+                    gemini: "Saved Info (persistent personal facts)",
+                    claude: "Claude Chat Memory",
+                    status: "match",
+                    same: "Persistent personal context the model remembers across chats",
+                    different: "Functionally similar; the surface differs (Gemini in Settings; Claude in Customize)"
+                },
+                {
+                    gemini: "Use style (formal, casual, etc.)",
+                    claude: "Claude Chat Use Style",
+                    status: "match",
+                    same: "Set your preferred tone and Claude adapts to match",
+                    different: "Both work similarly — choose once and Claude remembers your style"
+                }
+            ],
+            cowork: [
+                {
+                    gemini: "Gemini Enterprise / Agentspace (org platform)",
+                    claude: "Claude Cowork (team workspace for collaborative work)",
+                    status: "match",
+                    same: "Both provide team-based workspaces where AI helps coordinate work, manage tasks, and automate recurring work. Both support shared files, custom instructions, and team members collaborating together",
+                    different: "Gemini Enterprise: Pre-built enterprise connectors (Salesforce, ServiceNow, Workday). Claude Cowork: More flexible — use Connectors for your tools (Gmail, Slack, Drive, GitHub, etc.) and Skills to customize workflows"
+                },
+                {
+                    gemini: "Gemini Enterprise Agents (no-code multi-step agents)",
+                    claude: "Claude Cowork Projects (persistent team workspaces)",
+                    status: "match",
+                    same: "Both create persistent, reusable workspaces. Define once with custom instructions and files, then your team uses that same setup repeatedly. Both automate multi-step work",
+                    different: "Gemini Enterprise Agents: Pre-built no-code templates. Claude Cowork Projects: Set up projects with custom instructions, files, and context — basically persistent agents that your team collaborates in. Very flexible for your specific workflows"
+                },
+                {
+                    gemini: "Scheduled routines in Agentspace",
+                    claude: "Claude Cowork Scheduled Tasks",
+                    status: "match",
+                    same: "Set work to run automatically on a schedule (daily, weekly, monthly, etc.) without manual triggering. Great for recurring work",
+                    different: "Both work the same way — schedule your work and let it run automatically on your timeline"
+                },
+                {
+                    gemini: "Enterprise Agents + extensions (customizing Agentspace)",
+                    claude: "Claude Cowork Plugins (customize Cowork for your team)",
+                    status: "partial",
+                    same: "Both let you customize and extend your team workspace with custom behaviors and tools",
+                    different: "Gemini: First-party extensions for Enterprise Agents. Claude: Use Plugins to add custom tools, commands, and Skills to your Cowork workspace. More flexible for your specific team needs"
+                },
+                {
+                    gemini: "Workspace auto-grounding (Gmail/Drive/Calendar by default)",
+                    claude: "Claude Cowork + Connectors (opt-in per tool)",
+                    status: "partial",
+                    same: "Both let your team's AI see relevant work data from your tools",
+                    different: "Gemini: automatic for all Workspace users. Claude: You explicitly authorize which tools (Gmail, Drive, Calendar, etc.) Claude can access — gives you more control over what data Claude sees"
+                }
+            ]
+        };
+
+        const sectionIntros = {
+            chat: `<div class="section-intro"><strong>Claude Chat</strong> is your individual AI workspace (like gemini.google.com). Use it for conversations, creating with Artifacts, building Projects, and connecting to your tools. Perfect for personal work, brainstorming, and getting things done.</div>`,
+            cowork: `<div class="section-intro"><strong>Claude Cowork</strong> is a team workspace where you collaborate with colleagues and AI together. Set up persistent Projects with custom instructions, automate work with Scheduled Tasks, use Plugins to customize it for your team, and connect your tools with Connectors. It's for teams who want to work smarter together.</div>`
+        };
+
+        const comparisonsContainer = document.getElementById('comparisons');
+        const sectionIntroContainer = document.getElementById('sectionIntro');
+        const typeTabs = document.querySelectorAll('.type-tab');
+        let expandedId = null;
+
+        function createComparisonCard(comparison, index, type) {
+            const card = document.createElement('div');
+            card.className = 'comparison-card';
+            card.dataset.id = `${type}-${index}`;
+            
+            let statusIcon, statusText;
+            if (comparison.status === 'match') {
+                statusIcon = '✓';
+                statusText = 'Direct Match';
+            } else if (comparison.status === 'gap') {
+                statusIcon = '⚠';
+                statusText = 'Feature Gap';
+            } else {
+                statusIcon = '~';
+                statusText = 'Partial Match';
+            }
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="comparison-mapping">
+                        <div class="tool-column gemini-column">
+                            <div class="tool-label gemini-label">Gemini</div>
+                            <div class="tool-name">${comparison.gemini}</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="tool-column claude-column">
+                            <div class="tool-label claude-label">Claude</div>
+                            <div class="tool-name">${comparison.claude}</div>
+                        </div>
+                    </div>
+                    <span class="status-badge ${comparison.status}">${statusIcon} ${statusText}</span>
+                </div>
+                <p class="hint">Click to see details <span class="chevron">→</span></p>
+                
+                <div class="comparison-content">
+                    <div class="content-section">
+                        <h3><div class="section-divider"></div>What's the Same</h3>
+                        <p>${comparison.same}</p>
+                        <div class="highlight-box">
+                            ✓ Both tools share similar capabilities here — if you know how to do this in Gemini, you can do it in Claude
+                        </div>
+                    </div>
+                    <div class="content-section">
+                        <h3><div class="section-divider"></div>What's Different</h3>
+                        <p>${comparison.different}</p>
+                        <div class="highlight-box different">
+                            ⚡ Pay attention to these differences — they affect how you'll use the feature day-to-day
+                        </div>
+                    </div>
+                    <button class="close-btn">← Close</button>
+                </div>
+            `;
+
+            const toggleCard = () => {
+                const cardId = card.dataset.id;
+                if (expandedId === cardId) {
+                    card.classList.remove('expanded');
+                    expandedId = null;
+                } else {
+                    const prevCard = document.querySelector(`[data-id="${expandedId}"]`);
+                    if (prevCard) prevCard.classList.remove('expanded');
+                    card.classList.add('expanded');
+                    expandedId = cardId;
+                    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+                }
+            };
+
+            card.addEventListener('click', (e) => {
+                if (!card.classList.contains('expanded') || e.target.closest('.close-btn')) {
+                    toggleCard();
+                }
+            });
+
+            return card;
+        }
+
+        function renderType(type) {
+            comparisonsContainer.innerHTML = '';
+            sectionIntroContainer.innerHTML = sectionIntros[type];
+            if (comparisons[type]) {
+                comparisons[type].forEach((comp, idx) => {
+                    comparisonsContainer.appendChild(createComparisonCard(comp, idx, type));
+                });
+            }
+        }
+
+        typeTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                typeTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderType(tab.dataset.type);
+            });
+        });
+
+        renderType('chat');
+    </script>
+</body>
+</html>
